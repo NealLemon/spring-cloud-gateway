@@ -9,6 +9,8 @@ import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.*;
@@ -25,6 +27,7 @@ public class RouteCQengineHandlerMapping extends AbstractHandlerMapping {
 
 	private final RouteLocator routeLocator;
 
+	private Map<String,Mono<Route>> routeMap = new HashMap<>();
 	public RouteCQengineHandlerMapping(FilteringWebHandler webHandler,
 									   RouteLocator routeLocator,
 									   GlobalCorsProperties globalCorsProperties,
@@ -33,13 +36,19 @@ public class RouteCQengineHandlerMapping extends AbstractHandlerMapping {
 		this.routeLocator = routeLocator;
 		setOrder(environment.getProperty(GatewayProperties.PREFIX + ".handler-mapping.order", Integer.class, 1));
 		setCorsConfigurations(globalCorsProperties.getCorsConfigurations());
+		routeLocator.getRoutes().subscribe(route -> {
+			routeMap.put(route.getId(),Mono.just(route));
+		});
+
 	}
 
 	@Override
 	protected Mono<?> getHandlerInternal(ServerWebExchange exchange) {
+
+
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
-			return routeLocator.getRoutes().concatMap(route -> Mono.just(route).filter(r -> r.getId().equals("test_router"))).next()
+			return routeMap.get("test_router")
 					.flatMap((Function<Route, Mono<?>>) r -> {
 						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
