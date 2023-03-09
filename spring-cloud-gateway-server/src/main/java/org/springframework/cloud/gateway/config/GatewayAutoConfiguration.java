@@ -27,6 +27,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.cloud.gateway.handler.RouteCQengineHandlerMapping;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -271,7 +272,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.enabled", matchIfMissing = true)
 	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
-			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
+			GlobalCorsProperties globalCorsProperties, RouteCQengineHandlerMapping routePredicateHandlerMapping,
 			RouteDefinitionLocator routeDefinitionLocator) {
 		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
 				routeDefinitionLocator);
@@ -279,9 +280,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
+	public RouteCQengineHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
 			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
-		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
+		return new RouteCQengineHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
 	}
 
 	@Bean
