@@ -223,6 +223,12 @@
 			<artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/com.googlecode.cqengine/cqengine -->
+		<dependency>
+			<groupId>com.googlecode.cqengine</groupId>
+			<artifactId>cqengine</artifactId>
+		</dependency>
+
 	</dependencies>
 	<build>
 		<plugins>

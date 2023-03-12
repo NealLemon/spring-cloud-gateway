@@ -58,6 +58,7 @@
 		<spring-cloud-commons.version>4.0.1</spring-cloud-commons.version>
 		<testcontainers.version>1.17.3</testcontainers.version>
 		<kotlin-maven-plugin.version>1.6.21</kotlin-maven-plugin.version>
+		<cqengine-version>3.6.0</cqengine-version>
 	</properties>
 
 	<dependencyManagement>
@@ -119,6 +120,11 @@
 				<version>${testcontainers.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>com.googlecode.cqengine</groupId>
+				<artifactId>cqengine</artifactId>
+				<version>${cqengine-version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
