@@ -8,10 +8,9 @@ spring:
           enabled: false
       routes:
         - id: test_router
-          uri: https://www.jianshu.com/
+          uri: http://127.0.0.1:9090
           predicates:
-            - Method=GET,POST
-            - Path=/p/{segment},/u/{segment}
+            - Path=/api/v1/{segment}
 
 logging:
   level:

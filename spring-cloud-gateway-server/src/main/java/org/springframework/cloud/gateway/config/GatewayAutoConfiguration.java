@@ -27,7 +27,8 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.handler.RouteCQengineHandlerMapping;
+import org.springframework.cloud.gateway.handler.AwesomeRouteHandlerMapping;
+import org.springframework.cloud.gateway.route.*;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -125,7 +126,6 @@ import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
-import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
@@ -142,16 +142,6 @@ import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredic
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
-import org.springframework.cloud.gateway.route.CachingRouteLocator;
-import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
-import org.springframework.cloud.gateway.route.CompositeRouteLocator;
-import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
-import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
-import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
-import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
-import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.KeyValueConverter;
@@ -272,7 +262,7 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.enabled", matchIfMissing = true)
 	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
-			GlobalCorsProperties globalCorsProperties, RouteCQengineHandlerMapping routePredicateHandlerMapping,
+			GlobalCorsProperties globalCorsProperties, AwesomeRouteHandlerMapping routePredicateHandlerMapping,
 			RouteDefinitionLocator routeDefinitionLocator) {
 		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
 				routeDefinitionLocator);
@@ -280,9 +270,9 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public RouteCQengineHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
-			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
-		return new RouteCQengineHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
+	public AwesomeRouteHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
+																   RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
+		return new AwesomeRouteHandlerMapping(webHandler, new AwesomeRouteLocator(routeLocator), globalCorsProperties, environment);
 	}
 
 	@Bean

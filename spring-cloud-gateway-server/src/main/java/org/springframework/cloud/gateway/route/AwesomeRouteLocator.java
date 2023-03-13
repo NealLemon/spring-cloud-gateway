@@ -1,5 +1,6 @@
 package org.springframework.cloud.gateway.route;
 
+import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -11,6 +12,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.stream.Collectors;
 
@@ -20,15 +22,22 @@ public class AwesomeRouteLocator implements Ordered, AwesomeRoutes, ApplicationL
 
 	private final RouteLocator delegate;
 
+	private final IndexedCollection<WrapRoute> collection =  new ConcurrentIndexedCollection<WrapRoute>();
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	public AwesomeRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
+		if(collection.isEmpty()) {
+			fetch().doOnNext(route -> {
+				WrapRoute wrapRoute = new WrapRoute(route);
+				collection.add(wrapRoute);
+			}).subscribe();
+		}
 	}
 
 	@Override
 	public Flux<Route> getRoutes() {
-		return null;
+		return this.delegate.getRoutes();
 	}
 
 	private Flux<Route> fetch() {
@@ -67,7 +76,9 @@ public class AwesomeRouteLocator implements Ordered, AwesomeRoutes, ApplicationL
 	}
 
 	@Override
-	public IndexedCollection<Route> getCollectionRoutes() {
-		return null;
+	public IndexedCollection<WrapRoute> getCollectionRoutes() {
+		return collection;
 	}
+
+
 }
