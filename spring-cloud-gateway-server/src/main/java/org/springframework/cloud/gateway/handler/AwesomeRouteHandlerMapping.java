@@ -16,6 +16,7 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import com.googlecode.cqengine.query.Query;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -59,17 +60,7 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
 			Query<WrapRoute> query = matchesPath(WrapRoute.REQUEST_PATH, exchange.getRequest().getURI().getRawPath());
-			// return
-			// Mono.just(routeLocator.getCollectionRoutes().retrieve(query).uniqueResult()).flatMap(r
-			// -> {
-			// exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-			// exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r.getRoute());
-			// exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR,
-			// r.getRoute().getId());
-			// return Mono.just(webHandler);
-			// }).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
-			// exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-			// })));
+			routeLocator.getCollectionRoutes().addIndex(StandingQueryIndex.onQuery(query));
 			return Flux.fromStream(routeLocator.getCollectionRoutes().retrieve(query).stream()).next().flatMap(r -> {
 				exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 				exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r.getRoute());
