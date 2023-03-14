@@ -66,11 +66,16 @@ public class AwesomeRouteLocator
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		try {
-			fetch().collect(Collectors.toList()).subscribe(
-					list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
-						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
-						// TODO init QCengine
-					}, this::handleRefreshError), this::handleRefreshError);
+//			fetch().collect(Collectors.toList()).subscribe(
+//					list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
+//						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
+//						// TODO init QCengine
+//					}, this::handleRefreshError), this::handleRefreshError);
+			collection.clear();
+			fetch().doOnNext(route -> {
+				WrapRoute wrapRoute = new WrapRoute(route);
+				collection.add(wrapRoute);
+			}).subscribe();
 		}
 		catch (Throwable e) {
 			handleRefreshError(e);

@@ -30,18 +30,22 @@ spring:
           enabled: false
         weight:
           enabled: false
-      routes:
-        - id: test_router
-          uri: http://127.0.0.1:9090
-          metadata:
-            path: /api/v1/a/{name}
+#      routes:
+#        - id: test_router
+#          uri: http://127.0.0.1:9090
+#          metadata:
+#            path: /api/v1/a/{name}
 
-logging:
-  level:
-    org.springframework.cloud.gateway: TRACE
-    org.springframework.http.server.reactive: DEBUG
-    org.springframework.web.reactive: DEBUG
-    reactor.ipc.netty: DEBUG
-    reactor.netty: DEBUG
+#logging:
+#  level:
+#    org.springframework.cloud.gateway: TRACE
+#    org.springframework.http.server.reactive: DEBUG
+#    org.springframework.web.reactive: DEBUG
+#    reactor.ipc.netty: DEBUG
+#    reactor.netty: DEBUG
 
 management.endpoints.web.exposure.include: '*'
+management:
+  endpoint:
+    gateway:
+      enabled: true
