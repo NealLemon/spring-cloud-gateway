@@ -4,13 +4,37 @@ spring:
       predicate:
         After:
           enabled: false    #不加载 spring cloud  默认predicate
+        before:
+          enabled: false
+        between:
+          enabled: false
+        cloud-foundry-route-service:
+          enabled: false
+        cookie:
+          enabled: false
+        header:
+          enabled: false
+        host:
+          enabled: false
+        method:
+          enabled: false
+        path:
+          enabled: false
+        query:
+          enabled: false
+        read-body:
+          enabled: false
+        remote-addr:
+          enabled: false
+        xforwarded-remote-addr:
+          enabled: false
         weight:
           enabled: false
       routes:
         - id: test_router
           uri: http://127.0.0.1:9090
-          predicates:
-            - Path=/api/v1/{segment}
+          metadata:
+            path: /api/v1/a/{name}
 
 logging:
   level:

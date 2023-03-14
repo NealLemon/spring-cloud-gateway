@@ -27,7 +27,6 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 @EnableAutoConfiguration
 public class GatewaySampleApplication {
 
-
 	public static void main(String[] args) {
 		SpringApplication.run(GatewaySampleApplication.class, args);
 	}

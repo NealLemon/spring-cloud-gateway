@@ -68,7 +68,8 @@ public class ForwardedHeadersFilter implements HttpHeadersFilter, Ordered {
 		return forwarded;
 	}
 
-	/* for testing */ static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
+	/* for testing */
+	static LinkedCaseInsensitiveMap<String> splitIntoCaseInsensitiveMap(String[] pairs) {
 		if (ObjectUtils.isEmpty(pairs)) {
 			return null;
 		}

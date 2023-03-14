@@ -156,7 +156,7 @@ public class XForwardedHeadersFilterTests {
 		ServerWebExchange exchange = MockServerWebExchange.from(request);
 		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
 		originalUris.add(UriComponentsBuilder.fromUriString("https://originalhost:8080/prefix/get/").build().toUri()); // trailing
-																														// slash
+		// slash
 		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
 		URI requestUri = UriComponentsBuilder.fromUriString("https://routedservice:8090/get").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);
@@ -181,7 +181,7 @@ public class XForwardedHeadersFilterTests {
 		LinkedHashSet<URI> originalUris = new LinkedHashSet<>();
 		originalUris.add(
 				UriComponentsBuilder.fromUriString("https://originalhost:8080/resource/resource/").build().toUri()); // trailing
-																														// slash
+		// slash
 		exchange.getAttributes().put(GATEWAY_ORIGINAL_REQUEST_URL_ATTR, originalUris);
 		URI requestUri = UriComponentsBuilder.fromUriString("https://routedservice:8090/resource").build().toUri();
 		exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUri);

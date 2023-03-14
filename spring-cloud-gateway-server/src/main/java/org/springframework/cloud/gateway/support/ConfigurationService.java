@@ -85,8 +85,9 @@ public class ConfigurationService implements ApplicationEventPublisherAware {
 		return new InstanceBuilder<T>(this, instance);
 	}
 
-	/* for testing */ static <T> T bindOrCreate(Bindable<T> bindable, Map<String, Object> properties,
-			String configurationPropertyName, Validator validator, ConversionService conversionService) {
+	/* for testing */
+	static <T> T bindOrCreate(Bindable<T> bindable, Map<String, Object> properties, String configurationPropertyName,
+			Validator validator, ConversionService conversionService) {
 		// see ConfigurationPropertiesBinder from spring boot for this definition.
 		BindHandler handler = new IgnoreTopLevelConverterNotFoundBindHandler();
 

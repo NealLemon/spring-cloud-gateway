@@ -50,7 +50,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 	private static final String ALL_PATHS = "/**";
 
 	public CorsGatewayFilterApplicationListener(GlobalCorsProperties globalCorsProperties,
-                                                AwesomeRouteHandlerMapping routePredicateHandlerMapping, RouteDefinitionLocator routeDefinitionLocator) {
+			AwesomeRouteHandlerMapping routePredicateHandlerMapping, RouteDefinitionLocator routeDefinitionLocator) {
 		this.globalCorsProperties = globalCorsProperties;
 		this.routePredicateHandlerMapping = routePredicateHandlerMapping;
 		this.routeDefinitionLocator = routeDefinitionLocator;

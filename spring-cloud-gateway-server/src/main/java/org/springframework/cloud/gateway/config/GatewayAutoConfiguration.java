@@ -27,8 +27,6 @@ import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.cloud.gateway.handler.AwesomeRouteHandlerMapping;
-import org.springframework.cloud.gateway.route.*;
 import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.WebsocketClientSpec;
@@ -125,6 +123,7 @@ import org.springframework.cloud.gateway.filter.headers.XForwardedHeadersFilter;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolver;
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
+import org.springframework.cloud.gateway.handler.AwesomeRouteHandlerMapping;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
@@ -142,6 +141,17 @@ import org.springframework.cloud.gateway.handler.predicate.RemoteAddrRoutePredic
 import org.springframework.cloud.gateway.handler.predicate.RoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
+import org.springframework.cloud.gateway.route.AwesomeRouteLocator;
+import org.springframework.cloud.gateway.route.AwesomeRoutes;
+import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.CompositeRouteLocator;
+import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionRepository;
+import org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator;
+import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
+import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.RouteRefreshListener;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.cloud.gateway.support.ConfigurationService;
 import org.springframework.cloud.gateway.support.KeyValueConverter;
@@ -234,12 +244,18 @@ public class GatewayAutoConfiguration {
 				configurationService);
 	}
 
+	// @Bean
+	// @Primary
+	// @ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
+	// // TODO: property to disable composite?
+	// public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
+	// return new CachingRouteLocator(new
+	// CompositeRouteLocator(Flux.fromIterable(routeLocators)));
+	// }
+
 	@Bean
-	@Primary
-	@ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
-	// TODO: property to disable composite?
-	public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
-		return new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
+	public AwesomeRoutes awesomeRouteLocator(List<RouteLocator> routeLocators) {
+		return new AwesomeRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
 	@Bean
@@ -271,8 +287,8 @@ public class GatewayAutoConfiguration {
 	@Bean
 	@ConditionalOnMissingBean
 	public AwesomeRouteHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
-																   RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
-		return new AwesomeRouteHandlerMapping(webHandler, new AwesomeRouteLocator(routeLocator), globalCorsProperties, environment);
+			AwesomeRoutes routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
+		return new AwesomeRouteHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
 	}
 
 	@Bean

@@ -25,7 +25,6 @@ import java.util.Objects;
 
 import jakarta.validation.Valid;
 import jakarta.validation.ValidationException;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.cloud.gateway.filter.FilterDefinition;
@@ -42,7 +41,10 @@ public class RouteDefinition {
 
 	private String id;
 
-	@NotEmpty
+	/**
+	 * 删除NotEmpty 判断.
+	 */
+	// @NotEmpty
 	@Valid
 	private List<PredicateDefinition> predicates = new ArrayList<>();
 
