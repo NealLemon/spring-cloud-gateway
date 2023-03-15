@@ -18,7 +18,7 @@ package org.springframework.cloud.gateway.route;
 
 import com.googlecode.cqengine.IndexedCollection;
 
-public interface AwesomeRoutes extends RouteLocator {
+public interface AwesomeRoutes {
 
 	IndexedCollection<WrapRoute> getCollectionRoutes();
 

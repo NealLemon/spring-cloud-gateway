@@ -20,6 +20,9 @@ import java.util.stream.Collectors;
 
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
+import com.googlecode.cqengine.index.hash.HashIndex;
+import com.googlecode.cqengine.index.radix.RadixTreeIndex;
+import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
 import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,6 +49,7 @@ public class AwesomeRouteLocator
 
 	public AwesomeRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
+		//collection.addIndex(HashIndex.onAttribute(WrapRoute.HTTP_METHOD_ATTRIBUTE));
 		if (collection.isEmpty()) {
 			fetch().doOnNext(route -> {
 				WrapRoute wrapRoute = new WrapRoute(route);
@@ -53,12 +57,6 @@ public class AwesomeRouteLocator
 			}).subscribe();
 		}
 	}
-
-	@Override
-	public Flux<Route> getRoutes() {
-		return this.delegate.getRoutes();
-	}
-
 	private Flux<Route> fetch() {
 		return this.delegate.getRoutes().sort(AnnotationAwareOrderComparator.INSTANCE);
 	}
@@ -66,20 +64,17 @@ public class AwesomeRouteLocator
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		try {
-//			fetch().collect(Collectors.toList()).subscribe(
-//					list -> Flux.fromIterable(list).materialize().collect(Collectors.toList()).subscribe(signals -> {
-//						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
-//						// TODO init QCengine
-//					}, this::handleRefreshError), this::handleRefreshError);
-			collection.clear();
-			fetch().doOnNext(route -> {
-				WrapRoute wrapRoute = new WrapRoute(route);
-				collection.add(wrapRoute);
-			}).subscribe();
+			fetch().collect(Collectors.toList()).subscribe(
+					list -> Flux.fromIterable(list).subscribe(route -> {
+						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
+						WrapRoute wrapRoute = new WrapRoute(route);
+						collection.add(wrapRoute);
+					}, this::handleRefreshError), this::handleRefreshError);
 		}
 		catch (Throwable e) {
 			handleRefreshError(e);
 		}
+
 	}
 
 	private void handleRefreshError(Throwable throwable) {

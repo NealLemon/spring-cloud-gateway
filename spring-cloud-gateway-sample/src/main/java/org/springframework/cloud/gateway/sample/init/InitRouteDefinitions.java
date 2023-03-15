@@ -5,9 +5,9 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import jakarta.annotation.PostConstruct;
 import reactor.core.publisher.Mono;
 
-import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.stereotype.Component;
@@ -21,22 +21,23 @@ import org.springframework.stereotype.Component;
 public class InitRouteDefinitions {
 
 
-	private RouteDefinitionWriter routeDefinitionWriter;
+	private final RouteDefinitionWriter routeDefinitionWriter;
 
-	InitRouteDefinitions(RouteDefinitionWriter routeDefinitionWriter) throws URISyntaxException {
+
+	InitRouteDefinitions(RouteDefinitionWriter routeDefinitionWriter) {
 		this.routeDefinitionWriter = routeDefinitionWriter;
-		for(int i = 0; i < 100000; i++) {
+	}
+
+	@PostConstruct
+	public void init() throws URISyntaxException {
+		for (int i = 0; i < 100000; i++) {
 			RouteDefinition routeDefinition = new RouteDefinition();
-			Map<String,Object> map = new HashMap<>();
-			if(i%2 == 0) {
-				map.put("path","/api/full/v"+i+"/{hello}");
-			}else{
-				map.put("path","/api/full/v"+i+"/{world}");
-			}
+			Map<String, Object> map = new HashMap<>();
+			map.put("path", "/api/full/v" + i + "/{segment}");
 			routeDefinition.setId("pathPredicate" + i);
 			routeDefinition.setUri(new URI("http://127.0.0.1:9090"));
 			routeDefinition.setMetadata(map);
-			routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
+			this.routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
 		}
 	}
 }

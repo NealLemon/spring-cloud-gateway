@@ -255,9 +255,9 @@ public class GatewayAutoConfiguration {
 	// }
 
 	@Bean
-	@Primary
 	public AwesomeRoutes awesomeRouteLocator(List<RouteLocator> routeLocators) {
-		return new AwesomeRouteLocator(new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators))));
+		return new AwesomeRouteLocator(
+				new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
 	@Bean

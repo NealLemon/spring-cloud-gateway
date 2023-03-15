@@ -17,14 +17,12 @@
 package org.springframework.cloud.gateway.sample;
 
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.SpringBootConfiguration;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @author Spencer Gibb
  */
-@SpringBootConfiguration
-@EnableAutoConfiguration
+@SpringBootApplication
 public class GatewaySampleApplication {
 
 	public static void main(String[] args) {

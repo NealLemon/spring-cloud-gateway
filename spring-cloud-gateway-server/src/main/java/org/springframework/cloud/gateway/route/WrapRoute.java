@@ -22,9 +22,12 @@ import java.util.Map;
 
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.MultiValueAttribute;
+import com.googlecode.cqengine.attribute.SimpleAttribute;
 import com.googlecode.cqengine.query.option.QueryOptions;
 
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpMethod;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
@@ -32,10 +35,17 @@ import org.springframework.web.util.pattern.PathPatternParser;
  * @author Neal
  */
 public class WrapRoute implements Ordered {
-
+	// original route
 	private final Route route;
+	// method
+	private HttpMethod requestMethod;
 
-	private PathPatternParser pathPatternParser = new PathPatternParser();
+	//parameters
+	private MultiValueMap<String,String> requestParameters;
+
+	// headers
+	private MultiValueMap<String, String> requestHeaders;
+	private PathPatternParser pathPatternParser = PathPatternParser.defaultInstance;
 
 	private final List<PathPattern> requestPathPatterns = new ArrayList<>();
 
@@ -51,7 +61,6 @@ public class WrapRoute implements Ordered {
 		requestPathPatterns.add(pathPattern1);
 	}
 
-	// private HttpMethod requestMethod;
 
 	@Override
 	public int getOrder() {
@@ -65,6 +74,14 @@ public class WrapRoute implements Ordered {
 			"requestPathPatterns") {
 		public Iterable<PathPattern> getValues(WrapRoute routePath, QueryOptions queryOptions) {
 			return routePath.requestPathPatterns;
+		}
+	};
+
+	/**
+	 * index.
+	 */
+	public static final Attribute<WrapRoute, HttpMethod> HTTP_METHOD_ATTRIBUTE = new SimpleAttribute<WrapRoute, HttpMethod>("requestMethod") { public HttpMethod getValue(WrapRoute wrapRoute, QueryOptions queryOptions) {
+			return wrapRoute.requestMethod;
 		}
 	};
 
