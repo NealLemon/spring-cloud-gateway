@@ -21,9 +21,7 @@ import java.util.stream.Collectors;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.hash.HashIndex;
-import com.googlecode.cqengine.index.radix.RadixTreeIndex;
-import com.googlecode.cqengine.index.radixinverted.InvertedRadixTreeIndex;
-import com.googlecode.cqengine.index.standingquery.StandingQueryIndex;
+import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import reactor.core.publisher.Flux;
@@ -42,14 +40,14 @@ public class AwesomeRouteLocator
 	private static final Log log = LogFactory.getLog(AwesomeRouteLocator.class);
 
 	private final RouteLocator delegate;
-
-	private final IndexedCollection<WrapRoute> collection = new ConcurrentIndexedCollection<WrapRoute>();
+	private final IndexedCollection<WrapRoute> collection = new ConcurrentIndexedCollection<WrapRoute>(OnHeapPersistence.onPrimaryKey(WrapRoute.ID_INDEX));
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	public AwesomeRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
-		//collection.addIndex(HashIndex.onAttribute(WrapRoute.HTTP_METHOD_ATTRIBUTE));
+		collection.addIndex(HashIndex.onAttribute(WrapRoute.HTTP_METHOD_ATTRIBUTE));
+		collection.addIndex(HashIndex.onAttribute(WrapRoute.REQUEST_PARAMETERS));
 		if (collection.isEmpty()) {
 			fetch().doOnNext(route -> {
 				WrapRoute wrapRoute = new WrapRoute(route);

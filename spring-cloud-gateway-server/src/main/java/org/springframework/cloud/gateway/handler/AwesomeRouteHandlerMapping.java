@@ -16,8 +16,9 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.query.Query;
+import com.googlecode.cqengine.query.option.QueryOptions;
+import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -26,10 +27,15 @@ import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.AwesomeRoutes;
 import org.springframework.cloud.gateway.route.WrapRoute;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpHeaders;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
+import static com.googlecode.cqengine.query.QueryFactory.equal;
 import static com.googlecode.cqengine.query.QueryFactory.matchesPath;
+import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
+import static com.googlecode.cqengine.query.QueryFactory.and;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -59,9 +65,22 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
-			//Query<WrapRoute> query = and(equal(WrapRoute.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod()), matchesPath(WrapRoute.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()));
-			Query<WrapRoute> query = matchesPath(WrapRoute.REQUEST_PATH, exchange.getRequest().getURI().getRawPath());
-			return Flux.fromStream(routeLocator.getCollectionRoutes().retrieve(query).stream()).next().flatMap(r -> {
+			Query<WrapRoute> query = and(equal(WrapRoute.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod()),
+					matchesPath(WrapRoute.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()),
+					equal(WrapRoute.REQUEST_PARAMETERS, exchange.getRequest().getQueryParams().keySet()));
+			return Flux.fromStream(new FilteringResultSet<WrapRoute>(routeLocator.getCollectionRoutes()
+					.retrieve(query), query, noQueryOptions()) {
+				@Override
+				public boolean isValid(WrapRoute wrapRoute, QueryOptions queryOptions) {
+					if (null != wrapRoute.getRequestHeaders()) {
+						return validHeaders(wrapRoute.getRequestHeaders(), exchange.getRequest().getHeaders());
+					}
+					return true;
+				}
+				private boolean validHeaders(MultiValueMap<String, String> requestHeaders, HttpHeaders headers) {
+					return true;
+				}
+			}.stream()).next().flatMap(r -> {
 				exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 				exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r.getRoute());
 				exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getRoute().getId());
