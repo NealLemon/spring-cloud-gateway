@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import com.googlecode.cqengine.attribute.Attribute;
 import com.googlecode.cqengine.attribute.MultiValueAttribute;
 import com.googlecode.cqengine.attribute.SimpleAttribute;
@@ -30,7 +31,6 @@ import com.googlecode.cqengine.query.option.QueryOptions;
 
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
@@ -47,7 +47,7 @@ public class WrapRoute implements Ordered {
 	private Set<String> requestParameters;
 
 	// headers
-	private MultiValueMap<String, String> requestHeaders;
+	private ImmutableSetMultimap<String, String> requestHeaders;
 
 	private PathPatternParser pathPatternParser = PathPatternParser.defaultInstance;
 
@@ -86,7 +86,8 @@ public class WrapRoute implements Ordered {
 		Object methodObj = metadata.get("Method");
 		requestMethod = HttpMethod.valueOf(String.valueOf(methodObj));
 		//TODO 装配headers
-
+		requestHeaders = ImmutableSetMultimap.<String, String>builder().putAll("auth", "123", "456")
+				.build();
 	}
 
 
@@ -138,7 +139,7 @@ public class WrapRoute implements Ordered {
 	}
 
 
-	public MultiValueMap<String, String> getRequestHeaders() {
+	public ImmutableSetMultimap<String, String> getRequestHeaders() {
 		return requestHeaders;
 	}
 }

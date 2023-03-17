@@ -16,6 +16,9 @@
 
 package org.springframework.cloud.gateway.handler;
 
+import java.util.Collection;
+
+import com.google.common.collect.ImmutableSetMultimap;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
@@ -28,14 +31,13 @@ import org.springframework.cloud.gateway.route.AwesomeRoutes;
 import org.springframework.cloud.gateway.route.WrapRoute;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
+import static com.googlecode.cqengine.query.QueryFactory.and;
 import static com.googlecode.cqengine.query.QueryFactory.equal;
 import static com.googlecode.cqengine.query.QueryFactory.matchesPath;
 import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
-import static com.googlecode.cqengine.query.QueryFactory.and;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -77,8 +79,11 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 					}
 					return true;
 				}
-				private boolean validHeaders(MultiValueMap<String, String> requestHeaders, HttpHeaders headers) {
-					return true;
+				private boolean validHeaders(ImmutableSetMultimap<String, String> requestHeaders, HttpHeaders headers) {
+					return requestHeaders.entries().stream().anyMatch(entry -> {
+						Collection values = headers.getOrEmpty(entry.getKey());
+						return values.contains(entry.getValue());
+					});
 				}
 			}.stream()).next().flatMap(r -> {
 				exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
