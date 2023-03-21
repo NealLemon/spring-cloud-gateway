@@ -40,18 +40,17 @@ public class AwesomeRouteLocator
 	private static final Log log = LogFactory.getLog(AwesomeRouteLocator.class);
 
 	private final RouteLocator delegate;
-	private final IndexedCollection<WrapRoute> collection = new ConcurrentIndexedCollection<WrapRoute>(OnHeapPersistence.onPrimaryKey(WrapRoute.ID_INDEX));
+	private final IndexedCollection<Route> collection = new ConcurrentIndexedCollection<Route>(OnHeapPersistence.onPrimaryKey(Route.ID_INDEX));
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
 	public AwesomeRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
-		collection.addIndex(HashIndex.onAttribute(WrapRoute.HTTP_METHOD_ATTRIBUTE));
-		collection.addIndex(HashIndex.onAttribute(WrapRoute.REQUEST_PARAMETERS));
+		collection.addIndex(HashIndex.onAttribute(Route.HTTP_METHOD_ATTRIBUTE));
+		collection.addIndex(HashIndex.onAttribute(Route.REQUEST_PARAMETERS));
 		if (collection.isEmpty()) {
 			fetch().doOnNext(route -> {
-				WrapRoute wrapRoute = new WrapRoute(route);
-				collection.add(wrapRoute);
+				collection.add(route);
 			}).subscribe();
 		}
 	}
@@ -62,11 +61,11 @@ public class AwesomeRouteLocator
 	@Override
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		try {
+			collection.clear();
 			fetch().collect(Collectors.toList()).subscribe(
 					list -> Flux.fromIterable(list).subscribe(route -> {
 						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
-						WrapRoute wrapRoute = new WrapRoute(route);
-						collection.add(wrapRoute);
+						collection.add(route);
 					}, this::handleRefreshError), this::handleRefreshError);
 		}
 		catch (Throwable e) {
@@ -93,7 +92,7 @@ public class AwesomeRouteLocator
 	}
 
 	@Override
-	public IndexedCollection<WrapRoute> getCollectionRoutes() {
+	public IndexedCollection<Route> getCollectionRoutes() {
 		return collection;
 	}
 

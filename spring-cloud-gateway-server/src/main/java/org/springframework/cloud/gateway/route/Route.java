@@ -22,19 +22,38 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Splitter;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Multiset;
+import com.googlecode.cqengine.attribute.Attribute;
+import com.googlecode.cqengine.attribute.MultiValueAttribute;
+import com.googlecode.cqengine.attribute.SimpleAttribute;
+import com.googlecode.cqengine.attribute.SimpleNullableAttribute;
+import com.googlecode.cqengine.query.option.QueryOptions;
 
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.route.builder.Buildable;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
+import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
@@ -55,6 +74,29 @@ public class Route implements Ordered {
 
 	private final Map<String, Object> metadata;
 
+	/**
+	 * start : add index.
+	 */
+
+	private static String BASE_INDEXES = "BASE_INDEXES";
+	// method
+	private Set<HttpMethod> requestMethods;
+
+	//parameters
+	private Set<String> requestParameters;
+
+	// headers
+	private Map<String, Multiset> requestHeaders = new HashMap<>();
+
+	private PathPatternParser pathPatternParser = PathPatternParser.defaultInstance;
+
+	private final List<PathPattern> requestPathPatterns = new ArrayList<>();
+
+	private static ObjectMapper objectMapper = new ObjectMapper();
+	/**
+	 * end : add index.
+	 */
+
 	private Route(String id, URI uri, int order, AsyncPredicate<ServerWebExchange> predicate,
 			List<GatewayFilter> gatewayFilters, Map<String, Object> metadata) {
 		this.id = id;
@@ -63,6 +105,98 @@ public class Route implements Ordered {
 		this.predicate = predicate;
 		this.gatewayFilters = gatewayFilters;
 		this.metadata = metadata;
+		initIndexes(metadata);
+	}
+
+	/**
+	 * adding indexes init method.
+	 * @param metadata original metadata.
+	 */
+	private void initIndexes(Map<String, Object> metadata) {
+		//装配Path
+		Object baseIndexesObj = metadata.get(BASE_INDEXES);
+		if (null != baseIndexesObj) {
+			try {
+				JsonNode baseIndexNode = objectMapper.readValue(String.valueOf(baseIndexesObj), JsonNode.class);
+				String pathStr = baseIndexNode.get(RouteIndexesEnum.PATH.getValue()).textValue();
+				if (null != pathStr) {
+					Splitter.on(",").omitEmptyStrings().trimResults().split(pathStr).forEach(str -> {
+						PathPattern pathPattern = pathPatternParser.parse(str);
+						requestPathPatterns.add(pathPattern);
+					});
+				}
+				String queryStr = baseIndexNode.get(RouteIndexesEnum.QUERY.getValue()).textValue();
+				if (null != queryStr) {
+					requestParameters = new HashSet<>();
+					Splitter.on(",").omitEmptyStrings().trimResults().split(queryStr).forEach(str -> {
+						requestParameters.add(str);
+					});
+				}
+				String methodStr = baseIndexNode.get(RouteIndexesEnum.METHOD.getValue()).textValue();
+				if (null != methodStr) {
+					requestMethods = new HashSet<>();
+					Splitter.on(",").omitEmptyStrings().trimResults().split(methodStr).forEach(str -> {
+						requestMethods.add(HttpMethod.valueOf(String.valueOf(str)));
+					});
+				}
+
+				baseIndexNode.get(RouteIndexesEnum.HEADER.getValue()).fields().forEachRemaining(element -> {
+					requestHeaders.put(element.getKey(),HashMultiset.create(Splitter.on(",").omitEmptyStrings().trimResults().split(element.getValue().textValue())));
+				});
+			}
+			catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+
+	/**
+	 * define indexes.
+	 */
+	/**
+	 * API index.
+	 */
+	public static final Attribute<Route, PathPattern> REQUEST_PATH = new MultiValueAttribute<Route, PathPattern>(
+			"requestPathPatterns") {
+		public Iterable<PathPattern> getValues(Route route, QueryOptions queryOptions) {
+			return route.requestPathPatterns;
+		}
+	};
+
+	/**
+	 * Primary Key ID Index.
+	 */
+	public static final SimpleAttribute<Route, String> ID_INDEX = new SimpleAttribute<Route, String>("routeId") {
+		@Override
+		public String getValue(Route route, QueryOptions queryOptions) {
+			return route.getId();
+		}
+	};
+
+	/**
+	 * Method index.
+	 */
+	public static final Attribute<Route, HttpMethod> HTTP_METHOD_ATTRIBUTE = new MultiValueAttribute<Route, HttpMethod>("requestMethods") {
+		@Override
+		public Iterable<HttpMethod> getValues(Route route, QueryOptions queryOptions) {
+			return route.requestMethods;
+		}
+	};
+
+	/**
+	 * Parameters Index.
+	 */
+	public static final Attribute<Route, Set<String>> REQUEST_PARAMETERS = new SimpleNullableAttribute<Route, Set<String>>("requestParameters") {
+		@Override
+		public Set<String> getValue(Route route, QueryOptions queryOptions) {
+			return route.requestParameters;
+		}
+	};
+
+
+	public Map<String, Multiset> getRequestHeaders() {
+		return requestHeaders;
 	}
 
 	public static Builder builder() {
@@ -115,6 +249,27 @@ public class Route implements Ordered {
 		return Collections.unmodifiableMap(metadata);
 	}
 
+//	@Override
+//	public boolean equals(Object o) {
+//		if (this == o) {
+//			return true;
+//		}
+//		if (o == null || getClass() != o.getClass()) {
+//			return false;
+//		}
+//		Route route = (Route) o;
+//		return this.order == route.order && Objects.equals(this.id, route.id) && Objects.equals(this.uri, route.uri)
+//				&& Objects.equals(this.predicate, route.predicate)
+//				&& Objects.equals(this.gatewayFilters, route.gatewayFilters)
+//				&& Objects.equals(this.metadata, route.metadata);
+//	}
+//
+//	@Override
+//	public int hashCode() {
+//		return Objects.hash(this.id, this.uri, this.order, this.predicate, this.gatewayFilters, this.metadata);
+//	}
+
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) {
@@ -124,15 +279,12 @@ public class Route implements Ordered {
 			return false;
 		}
 		Route route = (Route) o;
-		return this.order == route.order && Objects.equals(this.id, route.id) && Objects.equals(this.uri, route.uri)
-				&& Objects.equals(this.predicate, route.predicate)
-				&& Objects.equals(this.gatewayFilters, route.gatewayFilters)
-				&& Objects.equals(this.metadata, route.metadata);
+		return order == route.order && Objects.equals(id, route.id) && Objects.equals(uri, route.uri) && Objects.equals(predicate, route.predicate) && Objects.equals(gatewayFilters, route.gatewayFilters) && Objects.equals(metadata, route.metadata) && Objects.equals(requestMethods, route.requestMethods) && Objects.equals(requestParameters, route.requestParameters) && Objects.equals(requestHeaders, route.requestHeaders) && Objects.equals(pathPatternParser, route.pathPatternParser) && Objects.equals(requestPathPatterns, route.requestPathPatterns);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(this.id, this.uri, this.order, this.predicate, this.gatewayFilters, this.metadata);
+		return Objects.hash(id, uri, order, predicate, gatewayFilters, metadata, requestMethods, requestParameters, requestHeaders, pathPatternParser, requestPathPatterns);
 	}
 
 	@Override
@@ -318,5 +470,6 @@ public class Route implements Ordered {
 		}
 
 	}
+
 
 }

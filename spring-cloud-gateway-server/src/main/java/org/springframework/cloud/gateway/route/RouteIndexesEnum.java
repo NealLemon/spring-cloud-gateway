@@ -16,10 +16,31 @@
 
 package org.springframework.cloud.gateway.route;
 
-import com.googlecode.cqengine.IndexedCollection;
+public enum RouteIndexesEnum {
+	/**
+	 * path.
+ 	 */
+	PATH("Path"),
+	/**
+	 * Query.
+	 */
+	QUERY("Query"),
+	/**
+	 * Method.
+	 */
+	METHOD("Method"),
+	/**
+	 * Header.
+	 */
+	HEADER("Header");
 
-public interface AwesomeRoutes {
+	private String value;
 
-	IndexedCollection<Route> getCollectionRoutes();
+	RouteIndexesEnum(String value) {
+		this.value = value;
+	}
 
+	String getValue() {
+		return value;
+	}
 }

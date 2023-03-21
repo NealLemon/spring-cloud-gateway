@@ -11,7 +11,7 @@ spring:
         cloud-foundry-route-service:
           enabled: false
         cookie:
-          enabled: false
+          enabled: true
         header:
           enabled: false
         host:

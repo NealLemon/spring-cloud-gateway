@@ -5,9 +5,12 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import reactor.core.publisher.Mono;
 
+import org.springframework.cloud.gateway.handler.predicate.PredicateDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionWriter;
 import org.springframework.stereotype.Component;
@@ -23,22 +26,30 @@ public class InitRouteDefinitions {
 
 	private final RouteDefinitionWriter routeDefinitionWriter;
 
-
+	private ObjectMapper objectMapper = new ObjectMapper();
 	InitRouteDefinitions(RouteDefinitionWriter routeDefinitionWriter) {
 		this.routeDefinitionWriter = routeDefinitionWriter;
 	}
 
 	@PostConstruct
 	public void init() throws URISyntaxException {
-		for (int i = 0; i < 100000; i++) {
+		for (int i = 0; i < 10; i++) {
 			RouteDefinition routeDefinition = new RouteDefinition();
+			Map<String, Object> baseMap = new HashMap<>();
 			Map<String, Object> map = new HashMap<>();
 			map.put("Path", "/api/full/v" + i + "/{segment}");
-			map.put("Method", "GET");
+			map.put("Method", "GET,POST");
 			map.put("Query", "p1");
+			Map<String, Object> innerMap = new HashMap<>();
+			innerMap.put("auth", "123,456");
+			innerMap.put("other", "aaa,bbb");
+			map.put("Header", innerMap);
+			baseMap.put("BASE_INDEXES", objectMapper.convertValue(map, JsonNode.class));   //Cookie=chocolate, ch.p
+			PredicateDefinition predicateDefinition = new PredicateDefinition("Cookie=chocolate, ch.p");
 			routeDefinition.setId(String.valueOf(i));
 			routeDefinition.setUri(new URI("http://127.0.0.1:9090"));
-			routeDefinition.setMetadata(map);
+			routeDefinition.getPredicates().add(predicateDefinition);
+			routeDefinition.setMetadata(baseMap);
 			this.routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
 		}
 	}
