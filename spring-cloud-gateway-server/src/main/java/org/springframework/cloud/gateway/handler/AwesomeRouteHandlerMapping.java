@@ -69,23 +69,8 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
 			Query<Route> query = and(in(Route.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod()),
-					matchesPath(Route.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()),
-					equal(Route.REQUEST_PARAMETERS, exchange.getRequest().getQueryParams().keySet()));
-			return Flux.fromStream(new FilteringResultSet<Route>(routeLocator.getCollectionRoutes().retrieve(query),
-					query, noQueryOptions()) {
-				@Override
-				public boolean isValid(Route route, QueryOptions queryOptions) {
-					if (route.getRequestHeaders().isEmpty()) {
-						return true;
-					}
-					return validHeaders(route.getRequestHeaders(), exchange.getRequest().getHeaders());
-				}
-
-				private boolean validHeaders(Map<String, Set<String>> requestHeaders, HttpHeaders headers) {
-					return requestHeaders.entrySet().stream().allMatch(key -> headers.getOrEmpty(key.getKey()).stream()
-							.anyMatch(headerStr -> key.getValue().contains(headerStr)));
-				}
-			}.stream()).concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
+					matchesPath(Route.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()));
+			return Flux.fromIterable(routeLocator.getCollectionRoutes().retrieve(query)).concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
 					// instead of immediately stopping main flux due to error, log and
 					// swallow it
 					.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))

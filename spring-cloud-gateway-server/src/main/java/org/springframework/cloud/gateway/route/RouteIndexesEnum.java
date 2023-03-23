@@ -21,19 +21,11 @@ public enum RouteIndexesEnum {
 	/**
 	 * path.
 	 */
-	PATH("Path"),
-	/**
-	 * Query.
-	 */
-	QUERY("Query"),
+	PATH("PathIndex"),
 	/**
 	 * Method.
 	 */
-	METHOD("Method"),
-	/**
-	 * Header.
-	 */
-	HEADER("Header");
+	METHOD("MethodIndex");
 
 	private String value;
 
@@ -41,7 +33,7 @@ public enum RouteIndexesEnum {
 		this.value = value;
 	}
 
-	String getValue() {
+	public String getValue() {
 		return value;
 	}
 
