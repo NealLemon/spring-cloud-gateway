@@ -17,9 +17,10 @@
 package org.springframework.cloud.gateway.route;
 
 public enum RouteIndexesEnum {
+
 	/**
 	 * path.
- 	 */
+	 */
 	PATH("Path"),
 	/**
 	 * Query.
@@ -43,4 +44,5 @@ public enum RouteIndexesEnum {
 	String getValue() {
 		return value;
 	}
+
 }

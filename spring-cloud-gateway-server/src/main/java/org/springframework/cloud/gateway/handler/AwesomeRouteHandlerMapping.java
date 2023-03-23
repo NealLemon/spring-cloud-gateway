@@ -16,13 +16,9 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-import com.google.common.collect.HashMultiset;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import com.googlecode.cqengine.query.Query;
 import com.googlecode.cqengine.query.option.QueryOptions;
 import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
@@ -58,7 +54,6 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 
 	private final AwesomeRoutes routeLocator;
 
-	private static final List<String> defaultHeaders = List.of("%3d%");
 	public AwesomeRouteHandlerMapping(FilteringWebHandler webHandler, AwesomeRoutes routeLocator,
 			GlobalCorsProperties globalCorsProperties, Environment environment) {
 		this.webHandler = webHandler;
@@ -76,8 +71,8 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 			Query<Route> query = and(in(Route.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod()),
 					matchesPath(Route.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()),
 					equal(Route.REQUEST_PARAMETERS, exchange.getRequest().getQueryParams().keySet()));
-			return Flux.fromStream(new FilteringResultSet<Route>(routeLocator.getCollectionRoutes()
-					.retrieve(query), query, noQueryOptions()) {
+			return Flux.fromStream(new FilteringResultSet<Route>(routeLocator.getCollectionRoutes().retrieve(query),
+					query, noQueryOptions()) {
 				@Override
 				public boolean isValid(Route route, QueryOptions queryOptions) {
 					if (route.getRequestHeaders().isEmpty()) {
@@ -86,9 +81,9 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 					return validHeaders(route.getRequestHeaders(), exchange.getRequest().getHeaders());
 				}
 
-				private boolean validHeaders(Map<String, Multiset> requestHeaders, HttpHeaders headers) {
-					return requestHeaders.entrySet().stream()
-							.allMatch(key -> Multisets.containsOccurrences(key.getValue(), HashMultiset.create(headers.getOrDefault(key.getKey(), defaultHeaders))));
+				private boolean validHeaders(Map<String, Set<String>> requestHeaders, HttpHeaders headers) {
+					return requestHeaders.entrySet().stream().allMatch(key -> headers.getOrEmpty(key.getKey()).stream()
+							.anyMatch(headerStr -> key.getValue().contains(headerStr)));
 				}
 			}.stream()).concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
 					// instead of immediately stopping main flux due to error, log and
@@ -99,9 +94,9 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 						exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());
 						return Mono.just(webHandler);
-			}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
-				exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
-			})));
+					}).switchIfEmpty(Mono.empty().then(Mono.fromRunnable(() -> {
+						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
+					})));
 		});
 	}
 

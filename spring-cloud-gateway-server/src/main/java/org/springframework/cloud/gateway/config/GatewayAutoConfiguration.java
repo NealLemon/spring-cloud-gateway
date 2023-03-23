@@ -143,7 +143,6 @@ import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateF
 import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.AwesomeRouteLocator;
 import org.springframework.cloud.gateway.route.AwesomeRoutes;
-import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
@@ -256,8 +255,7 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	public AwesomeRoutes awesomeRouteLocator(List<RouteLocator> routeLocators) {
-		return new AwesomeRouteLocator(
-				new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
+		return new AwesomeRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
 	@Bean

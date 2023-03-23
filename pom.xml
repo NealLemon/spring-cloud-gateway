@@ -136,7 +136,8 @@
 		<module>spring-cloud-gateway-webflux</module>
 		<module>spring-cloud-gateway-server</module>
 		<module>spring-cloud-starter-gateway</module>
-		<module>spring-cloud-gateway-sample</module>
+		<module>spring-cloud-gateway-starter</module>
+		<!--		<module>spring-cloud-gateway-sample</module>-->
 <!--		<module>spring-cloud-gateway-integration-tests</module>-->
 <!--		<module>docs</module>-->
 	</modules>
@@ -146,7 +147,7 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>flatten-maven-plugin</artifactId>
-<!--				<version>1.3.0</version>-->
+				<version>1.3.0</version>
 			</plugin>
 			<plugin>
 				<groupId>io.spring.javaformat</groupId>

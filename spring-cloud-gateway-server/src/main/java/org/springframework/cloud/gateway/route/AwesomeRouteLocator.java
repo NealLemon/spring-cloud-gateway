@@ -40,7 +40,9 @@ public class AwesomeRouteLocator
 	private static final Log log = LogFactory.getLog(AwesomeRouteLocator.class);
 
 	private final RouteLocator delegate;
-	private final IndexedCollection<Route> collection = new ConcurrentIndexedCollection<Route>(OnHeapPersistence.onPrimaryKey(Route.ID_INDEX));
+
+	private final IndexedCollection<Route> collection = new ConcurrentIndexedCollection<Route>(
+			OnHeapPersistence.onPrimaryKey(Route.ID_INDEX));
 
 	private ApplicationEventPublisher applicationEventPublisher;
 
@@ -54,6 +56,7 @@ public class AwesomeRouteLocator
 			}).subscribe();
 		}
 	}
+
 	private Flux<Route> fetch() {
 		return this.delegate.getRoutes().sort(AnnotationAwareOrderComparator.INSTANCE);
 	}
@@ -62,11 +65,10 @@ public class AwesomeRouteLocator
 	public void onApplicationEvent(RefreshRoutesEvent event) {
 		try {
 			collection.clear();
-			fetch().collect(Collectors.toList()).subscribe(
-					list -> Flux.fromIterable(list).subscribe(route -> {
-						applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
-						collection.add(route);
-					}, this::handleRefreshError), this::handleRefreshError);
+			fetch().collect(Collectors.toList()).subscribe(list -> Flux.fromIterable(list).subscribe(route -> {
+				applicationEventPublisher.publishEvent(new RefreshRoutesResultEvent(this));
+				collection.add(route);
+			}, this::handleRefreshError), this::handleRefreshError);
 		}
 		catch (Throwable e) {
 			handleRefreshError(e);
