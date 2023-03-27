@@ -1,6 +1,8 @@
 spring:
   cloud:
     gateway:
+      performance:
+        enabled: true
       predicate:
         After:
           enabled: false    #不加载 spring cloud  默认predicate
@@ -11,16 +13,8 @@ spring:
         cloud-foundry-route-service:
           enabled: false
         cookie:
-          enabled: true
-        header:
           enabled: false
         host:
-          enabled: false
-        method:
-          enabled: false
-        path:
-          enabled: false
-        query:
           enabled: false
         read-body:
           enabled: false

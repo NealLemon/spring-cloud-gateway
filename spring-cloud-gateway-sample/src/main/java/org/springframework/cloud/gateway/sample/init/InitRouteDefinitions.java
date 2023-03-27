@@ -27,30 +27,26 @@ public class InitRouteDefinitions {
 
 	private final RouteDefinitionWriter routeDefinitionWriter;
 
-	private ObjectMapper objectMapper = new ObjectMapper();
 	InitRouteDefinitions(RouteDefinitionWriter routeDefinitionWriter) {
 		this.routeDefinitionWriter = routeDefinitionWriter;
 	}
 
 	@PostConstruct
 	public void init() throws URISyntaxException {
-		for (int i = 0; i < 10; i++) {
+		for(int i = 0; i < 100000; i++) {
 			RouteDefinition routeDefinition = new RouteDefinition();
-//			Map<String, Object> baseMap = new HashMap<>();
-			Map<String, Object> map = new HashMap<>();
-			map.put(RouteIndexesEnum.PATH.getValue(), "/api/full/v" + i + "/{segment}");
-			map.put(RouteIndexesEnum.METHOD.getValue(), "GET,POST");
-//			Map<String, Object> innerMap = new HashMap<>();
-//			innerMap.put("auth", "123,456");
-//			innerMap.put("other", "aaa,bbb");
-//			map.put("Header", innerMap);
-//			baseMap.put("BASE_INDEXES", objectMapper.convertValue(map, JsonNode.class));   //Cookie=chocolate, ch.p
-			PredicateDefinition predicateDefinition = new PredicateDefinition("Cookie=chocolate, ch.p");
+			String path = "/api/full/v"+i+"/{segment}";
 			routeDefinition.setId(String.valueOf(i));
 			routeDefinition.setUri(new URI("http://127.0.0.1:9090"));
-			routeDefinition.getPredicates().add(predicateDefinition);
-			routeDefinition.setMetadata(map);
-			this.routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
+			PredicateDefinition p1 = new PredicateDefinition("Path="+path);
+		//	PredicateDefinition p2 = new PredicateDefinition("Query=p1");
+			PredicateDefinition p3 = new PredicateDefinition("Method=GET");
+		//	PredicateDefinition p4 = new PredicateDefinition("Header=auth,123");
+			routeDefinition.getPredicates().add(p1);
+			//routeDefinition.getPredicates().add(p2);
+			routeDefinition.getPredicates().add(p3);
+		//	routeDefinition.getPredicates().add(p4);
+			routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
 		}
 	}
 }

@@ -70,7 +70,7 @@ public class Route implements Ordered {
 	 * start : add index.
 	 */
 	// method
-	private Set<HttpMethod> requestMethods;
+	private Set<String> requestMethods;
 
 	private final PathPatternParser pathPatternParser = PathPatternParser.defaultInstance;
 
@@ -110,7 +110,7 @@ public class Route implements Ordered {
 		if (null != methodStr) {
 			requestMethods = new HashSet<>();
 			Arrays.stream(StringUtils.trimAllWhitespace(String.valueOf(methodStr)).split(",")).forEach(str -> {
-				requestMethods.add(HttpMethod.valueOf(String.valueOf(str)));
+				requestMethods.add(String.valueOf(str));
 			});
 			metadata.remove(RouteIndexesEnum.METHOD.getValue());
 		}
@@ -142,10 +142,10 @@ public class Route implements Ordered {
 	/**
 	 * Method index.
 	 */
-	public static final Attribute<Route, HttpMethod> HTTP_METHOD_ATTRIBUTE = new MultiValueAttribute<Route, HttpMethod>(
+	public static final Attribute<Route, String> HTTP_METHOD_ATTRIBUTE = new MultiValueAttribute<Route, String>(
 			"requestMethods") {
 		@Override
-		public Iterable<HttpMethod> getValues(Route route, QueryOptions queryOptions) {
+		public Iterable<String> getValues(Route route, QueryOptions queryOptions) {
 			return route.requestMethods;
 		}
 	};

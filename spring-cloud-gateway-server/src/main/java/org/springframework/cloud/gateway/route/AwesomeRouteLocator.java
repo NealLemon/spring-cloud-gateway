@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 import com.googlecode.cqengine.ConcurrentIndexedCollection;
 import com.googlecode.cqengine.IndexedCollection;
 import com.googlecode.cqengine.index.hash.HashIndex;
+import com.googlecode.cqengine.index.radix.RadixTreeIndex;
 import com.googlecode.cqengine.persistence.onheap.OnHeapPersistence;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,7 +49,8 @@ public class AwesomeRouteLocator
 
 	public AwesomeRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
-		collection.addIndex(HashIndex.onAttribute(Route.HTTP_METHOD_ATTRIBUTE));
+		collection.addIndex(RadixTreeIndex.onAttribute(Route.HTTP_METHOD_ATTRIBUTE));
+		collection.addIndex(HashIndex.onAttribute(Route.REQUEST_PATH));
 		if (collection.isEmpty()) {
 			fetch().doOnNext(route -> {
 				collection.add(route);

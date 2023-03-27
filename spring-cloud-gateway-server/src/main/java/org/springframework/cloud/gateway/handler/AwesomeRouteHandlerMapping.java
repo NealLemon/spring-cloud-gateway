@@ -60,7 +60,7 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
-			Query<Route> query = and(in(Route.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod()),
+			Query<Route> query = and(in(Route.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod().name()),
 					matchesPath(Route.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()));
 			return Flux.fromIterable(routeLocator.getCollectionRoutes().retrieve(query))
 					.concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
