@@ -395,6 +395,12 @@
       "type": "java.lang.Boolean",
       "description": "If Micrometer Observability support should be turned on.",
       "defaultValue": "true"
+    },
+    {
+      "name": "spring.cloud.gateway.performance.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Enables performance router.",
+      "defaultValue": "false"
     }
   ]
 }

@@ -16,12 +16,7 @@
 
 package org.springframework.cloud.gateway.handler;
 
-import java.util.Map;
-import java.util.Set;
-
 import com.googlecode.cqengine.query.Query;
-import com.googlecode.cqengine.query.option.QueryOptions;
-import com.googlecode.cqengine.resultset.filter.FilteringResultSet;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -30,15 +25,12 @@ import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.route.AwesomeRoutes;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.core.env.Environment;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 import org.springframework.web.server.ServerWebExchange;
 
 import static com.googlecode.cqengine.query.QueryFactory.and;
-import static com.googlecode.cqengine.query.QueryFactory.equal;
 import static com.googlecode.cqengine.query.QueryFactory.in;
 import static com.googlecode.cqengine.query.QueryFactory.matchesPath;
-import static com.googlecode.cqengine.query.QueryFactory.noQueryOptions;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -70,11 +62,14 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
 			Query<Route> query = and(in(Route.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod()),
 					matchesPath(Route.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()));
-			return Flux.fromIterable(routeLocator.getCollectionRoutes().retrieve(query)).concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
-					// instead of immediately stopping main flux due to error, log and
-					// swallow it
-					.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
-					.onErrorResume(e -> Mono.empty())).next().flatMap(r -> {
+			return Flux.fromIterable(routeLocator.getCollectionRoutes().retrieve(query))
+					.concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
+							// instead of immediately stopping main flux due to error, log
+							// and
+							// swallow it
+							.doOnError(e -> logger.error("Error applying predicate for route: " + route.getId(), e))
+							.onErrorResume(e -> Mono.empty()))
+					.next().flatMap(r -> {
 						exchange.getAttributes().remove(GATEWAY_PREDICATE_ROUTE_ATTR);
 						exchange.getAttributes().put(GATEWAY_ROUTE_ATTR, r);
 						exchange.getAttributes().put(GATEWAY_PREDICATE_ROUTE_ATTR, r.getId());

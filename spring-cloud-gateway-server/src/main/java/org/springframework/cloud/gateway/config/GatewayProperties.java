@@ -47,6 +47,19 @@ public class GatewayProperties {
 	private final Log logger = LogFactory.getLog(getClass());
 
 	/**
+	 * additional properties.
+	 */
+	private Performance performance = new Performance();
+
+	public Performance getPerformance() {
+		return performance;
+	}
+
+	public void setPerformance(Performance performance) {
+		this.performance = performance;
+	}
+
+	/**
 	 * List of Routes.
 	 */
 	@NotNull
@@ -108,6 +121,20 @@ public class GatewayProperties {
 		return new ToStringCreator(this).append("routes", routes).append("defaultFilters", defaultFilters)
 				.append("streamingMediaTypes", streamingMediaTypes)
 				.append("failOnRouteDefinitionError", failOnRouteDefinitionError).toString();
+
+	}
+
+	public class Performance {
+
+		private boolean enabled = false;
+
+		public boolean isEnabled() {
+			return enabled;
+		}
+
+		public void setEnabled(boolean enabled) {
+			this.enabled = enabled;
+		}
 
 	}
 

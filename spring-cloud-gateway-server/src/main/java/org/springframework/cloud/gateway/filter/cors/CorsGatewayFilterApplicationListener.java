@@ -25,11 +25,11 @@ import java.util.Optional;
 
 import org.springframework.cloud.gateway.config.GlobalCorsProperties;
 import org.springframework.cloud.gateway.event.RefreshRoutesEvent;
-import org.springframework.cloud.gateway.handler.AwesomeRouteHandlerMapping;
 import org.springframework.cloud.gateway.route.RouteDefinition;
 import org.springframework.cloud.gateway.route.RouteDefinitionLocator;
 import org.springframework.context.ApplicationListener;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.reactive.handler.AbstractHandlerMapping;
 
 /**
  * @author Fredrich Ombico
@@ -39,7 +39,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 
 	private final GlobalCorsProperties globalCorsProperties;
 
-	private final AwesomeRouteHandlerMapping routePredicateHandlerMapping;
+	private final AbstractHandlerMapping routePredicateHandlerMapping;
 
 	private final RouteDefinitionLocator routeDefinitionLocator;
 
@@ -50,7 +50,7 @@ public class CorsGatewayFilterApplicationListener implements ApplicationListener
 	private static final String ALL_PATHS = "/**";
 
 	public CorsGatewayFilterApplicationListener(GlobalCorsProperties globalCorsProperties,
-			AwesomeRouteHandlerMapping routePredicateHandlerMapping, RouteDefinitionLocator routeDefinitionLocator) {
+			AbstractHandlerMapping routePredicateHandlerMapping, RouteDefinitionLocator routeDefinitionLocator) {
 		this.globalCorsProperties = globalCorsProperties;
 		this.routePredicateHandlerMapping = routePredicateHandlerMapping;
 		this.routeDefinitionLocator = routeDefinitionLocator;

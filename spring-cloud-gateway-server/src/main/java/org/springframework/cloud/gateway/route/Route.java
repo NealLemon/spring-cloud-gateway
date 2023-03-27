@@ -103,14 +103,16 @@ public class Route implements Ordered {
 				PathPattern pathPattern = pathPatternParser.parse(str);
 				requestPathPatterns.add(pathPattern);
 			});
+			metadata.remove(RouteIndexesEnum.PATH.getValue());
 		}
-		//装配method
+		// 装配method
 		Object methodStr = metadata.get(RouteIndexesEnum.METHOD.getValue());
 		if (null != methodStr) {
 			requestMethods = new HashSet<>();
 			Arrays.stream(StringUtils.trimAllWhitespace(String.valueOf(methodStr)).split(",")).forEach(str -> {
 				requestMethods.add(HttpMethod.valueOf(String.valueOf(str)));
 			});
+			metadata.remove(RouteIndexesEnum.METHOD.getValue());
 		}
 	}
 
@@ -216,18 +218,14 @@ public class Route implements Ordered {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, uri, order, predicate, gatewayFilters, metadata, requestMethods, pathPatternParser, requestPathPatterns);
+		return Objects.hash(id, uri, order, predicate, gatewayFilters, metadata, requestMethods, pathPatternParser,
+				requestPathPatterns);
 	}
 
 	@Override
 	public String toString() {
-		String sb = "Route{" + "id='" + id + '\''
-				+ ", uri=" + uri
-				+ ", order=" + order
-				+ ", predicate=" + predicate
-				+ ", gatewayFilters=" + gatewayFilters
-				+ ", metadata=" + metadata
-				+ '}';
+		String sb = "Route{" + "id='" + id + '\'' + ", uri=" + uri + ", order=" + order + ", predicate=" + predicate
+				+ ", gatewayFilters=" + gatewayFilters + ", metadata=" + metadata + '}';
 		return sb;
 	}
 

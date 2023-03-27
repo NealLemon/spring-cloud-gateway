@@ -125,6 +125,7 @@ import org.springframework.cloud.gateway.filter.ratelimit.PrincipalNameKeyResolv
 import org.springframework.cloud.gateway.filter.ratelimit.RateLimiter;
 import org.springframework.cloud.gateway.handler.AwesomeRouteHandlerMapping;
 import org.springframework.cloud.gateway.handler.FilteringWebHandler;
+import org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping;
 import org.springframework.cloud.gateway.handler.predicate.AfterRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BeforeRoutePredicateFactory;
 import org.springframework.cloud.gateway.handler.predicate.BetweenRoutePredicateFactory;
@@ -143,6 +144,7 @@ import org.springframework.cloud.gateway.handler.predicate.WeightRoutePredicateF
 import org.springframework.cloud.gateway.handler.predicate.XForwardedRemoteAddrRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.AwesomeRouteLocator;
 import org.springframework.cloud.gateway.route.AwesomeRoutes;
+import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteDefinitionLocator;
 import org.springframework.cloud.gateway.route.CompositeRouteLocator;
 import org.springframework.cloud.gateway.route.InMemoryRouteDefinitionRepository;
@@ -244,18 +246,18 @@ public class GatewayAutoConfiguration {
 				configurationService);
 	}
 
-	// @Bean
-	// @Primary
-	// @ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
-	// // TODO: property to disable composite?
-	// public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
-	// return new CachingRouteLocator(new
-	// CompositeRouteLocator(Flux.fromIterable(routeLocators)));
-	// }
-
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.performance.enabled")
 	public AwesomeRoutes awesomeRouteLocator(List<RouteLocator> routeLocators) {
 		return new AwesomeRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
+	}
+
+	@Bean
+	@Primary
+	@ConditionalOnMissingBean(name = "awesomeRouteLocator")
+	// TODO: property to disable composite?
+	public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
+		return new CachingRouteLocator(new CompositeRouteLocator(Flux.fromIterable(routeLocators)));
 	}
 
 	@Bean
@@ -276,8 +278,23 @@ public class GatewayAutoConfiguration {
 	}
 
 	@Bean
+	@ConditionalOnProperty(name = "spring.cloud.gateway.performance.enabled")
+	public AwesomeRouteHandlerMapping awesomeRouteHandlerMapping(FilteringWebHandler webHandler,
+			AwesomeRoutes routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
+		return new AwesomeRouteHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
+	}
+
+	@Bean
+	@ConditionalOnMissingBean(name = "awesomeRouteHandlerMapping")
+	public RoutePredicateHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
+			RouteLocator routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
+		return new RoutePredicateHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
+	}
+
+	@Bean
+	@ConditionalOnBean(name = "awesomeRouteHandlerMapping")
 	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.enabled", matchIfMissing = true)
-	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
+	public CorsGatewayFilterApplicationListener awosomeCorsGatewayFilterApplicationListener(
 			GlobalCorsProperties globalCorsProperties, AwesomeRouteHandlerMapping routePredicateHandlerMapping,
 			RouteDefinitionLocator routeDefinitionLocator) {
 		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
@@ -286,9 +303,12 @@ public class GatewayAutoConfiguration {
 
 	@Bean
 	@ConditionalOnMissingBean
-	public AwesomeRouteHandlerMapping routePredicateHandlerMapping(FilteringWebHandler webHandler,
-			AwesomeRoutes routeLocator, GlobalCorsProperties globalCorsProperties, Environment environment) {
-		return new AwesomeRouteHandlerMapping(webHandler, routeLocator, globalCorsProperties, environment);
+	@ConditionalOnProperty(name = "spring.cloud.gateway.globalcors.enabled", matchIfMissing = true)
+	public CorsGatewayFilterApplicationListener corsGatewayFilterApplicationListener(
+			GlobalCorsProperties globalCorsProperties, RoutePredicateHandlerMapping routePredicateHandlerMapping,
+			RouteDefinitionLocator routeDefinitionLocator) {
+		return new CorsGatewayFilterApplicationListener(globalCorsProperties, routePredicateHandlerMapping,
+				routeDefinitionLocator);
 	}
 
 	@Bean

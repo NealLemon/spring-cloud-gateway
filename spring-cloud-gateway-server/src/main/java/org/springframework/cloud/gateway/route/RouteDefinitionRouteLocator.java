@@ -18,6 +18,7 @@ package org.springframework.cloud.gateway.route;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ import org.springframework.cloud.gateway.support.HasRouteId;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.AnnotationAwareOrderComparator;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 
 /**
@@ -114,10 +116,34 @@ public class RouteDefinitionRouteLocator implements RouteLocator {
 	}
 
 	private Route convertToRoute(RouteDefinition routeDefinition) {
+		// added by Neal
+		combinePerformancePredicates(routeDefinition);
 		AsyncPredicate<ServerWebExchange> predicate = combinePredicates(routeDefinition);
 		List<GatewayFilter> gatewayFilters = getFilters(routeDefinition);
 
 		return Route.async(routeDefinition).asyncPredicate(predicate).replaceFilters(gatewayFilters).build();
+	}
+
+	/**
+	 * PATH&METHOD Predicate Routes for new Handler Mapping => AwesomeRouteHandlerMapping.
+	 */
+	private void combinePerformancePredicates(RouteDefinition routeDefinition) {
+		if (gatewayProperties.getPerformance().isEnabled()) {
+			Iterator<PredicateDefinition> it = routeDefinition.getPredicates().iterator();
+			while (it.hasNext()) {
+				PredicateDefinition p = it.next();
+				if (p.getName().equalsIgnoreCase("Path")) {
+					routeDefinition.getMetadata().put(RouteIndexesEnum.PATH.getValue(),
+							StringUtils.collectionToCommaDelimitedString(p.getArgs().values()));
+					it.remove();
+				}
+				if (p.getName().equalsIgnoreCase("Method")) {
+					routeDefinition.getMetadata().put(RouteIndexesEnum.METHOD.getValue(),
+							StringUtils.collectionToCommaDelimitedString(p.getArgs().values()));
+					it.remove();
+				}
+			}
+		}
 	}
 
 	@SuppressWarnings("unchecked")
