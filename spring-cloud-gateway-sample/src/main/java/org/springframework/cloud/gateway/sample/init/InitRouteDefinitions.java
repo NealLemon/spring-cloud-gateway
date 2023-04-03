@@ -35,17 +35,17 @@ public class InitRouteDefinitions {
 	public void init() throws URISyntaxException {
 		for(int i = 0; i < 100000; i++) {
 			RouteDefinition routeDefinition = new RouteDefinition();
-			String path = "/api/full/v"+i+"/{segment}";
+			String path  = "/api/*/v"+i+"/test";
 			routeDefinition.setId(String.valueOf(i));
 			routeDefinition.setUri(new URI("http://127.0.0.1:9090"));
 			PredicateDefinition p1 = new PredicateDefinition("Path="+path);
-		//	PredicateDefinition p2 = new PredicateDefinition("Query=p1");
+			PredicateDefinition p2 = new PredicateDefinition("Query=p1");
 			PredicateDefinition p3 = new PredicateDefinition("Method=GET");
-		//	PredicateDefinition p4 = new PredicateDefinition("Header=auth,123");
+			PredicateDefinition p4 = new PredicateDefinition("Header=auth,123");
 			routeDefinition.getPredicates().add(p1);
-			//routeDefinition.getPredicates().add(p2);
+			routeDefinition.getPredicates().add(p2);
 			routeDefinition.getPredicates().add(p3);
-		//	routeDefinition.getPredicates().add(p4);
+			routeDefinition.getPredicates().add(p4);
 			routeDefinitionWriter.save(Mono.just(routeDefinition)).subscribe();
 		}
 	}

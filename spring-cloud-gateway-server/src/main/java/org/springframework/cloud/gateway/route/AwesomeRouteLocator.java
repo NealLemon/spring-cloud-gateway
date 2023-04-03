@@ -49,8 +49,8 @@ public class AwesomeRouteLocator
 
 	public AwesomeRouteLocator(RouteLocator delegate) {
 		this.delegate = delegate;
-		collection.addIndex(RadixTreeIndex.onAttribute(Route.HTTP_METHOD_ATTRIBUTE));
-		collection.addIndex(HashIndex.onAttribute(Route.REQUEST_PATH));
+		collection.addIndex(RadixTreeIndex.onAttribute(Route.REQUEST_PATH));
+		collection.addIndex(HashIndex.onAttribute(Route.HTTP_METHOD_ATTRIBUTE));
 		if (collection.isEmpty()) {
 			fetch().doOnNext(route -> {
 				collection.add(route);

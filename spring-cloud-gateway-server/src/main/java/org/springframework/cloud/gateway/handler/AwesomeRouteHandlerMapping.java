@@ -31,6 +31,7 @@ import org.springframework.web.server.ServerWebExchange;
 import static com.googlecode.cqengine.query.QueryFactory.and;
 import static com.googlecode.cqengine.query.QueryFactory.in;
 import static com.googlecode.cqengine.query.QueryFactory.matchesPath;
+import static com.googlecode.cqengine.query.QueryFactory.strMatchesPath;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_PREDICATE_ROUTE_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REACTOR_CONTEXT_ATTR;
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR;
@@ -60,8 +61,7 @@ public class AwesomeRouteHandlerMapping extends AbstractHandlerMapping {
 
 		return Mono.deferContextual(contextView -> {
 			exchange.getAttributes().put(GATEWAY_REACTOR_CONTEXT_ATTR, contextView);
-			Query<Route> query = and(in(Route.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod().name()),
-					matchesPath(Route.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()));
+			Query<Route> query = and(strMatchesPath(Route.REQUEST_PATH, exchange.getRequest().getURI().getRawPath()),in(Route.HTTP_METHOD_ATTRIBUTE, exchange.getRequest().getMethod().name()));
 			return Flux.fromIterable(routeLocator.getCollectionRoutes().retrieve(query))
 					.concatMap(route -> Mono.just(route).filterWhen(r -> r.getPredicate().apply(exchange))
 							// instead of immediately stopping main flux due to error, log

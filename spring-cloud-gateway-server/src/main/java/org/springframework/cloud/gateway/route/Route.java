@@ -39,13 +39,10 @@ import org.springframework.cloud.gateway.handler.AsyncPredicate;
 import org.springframework.cloud.gateway.route.builder.Buildable;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.pattern.PathPattern;
-import org.springframework.web.util.pattern.PathPatternParser;
 
 import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.toAsyncPredicate;
 
@@ -72,9 +69,11 @@ public class Route implements Ordered {
 	// method
 	private Set<String> requestMethods;
 
-	private final PathPatternParser pathPatternParser = PathPatternParser.defaultInstance;
+//	private final PathPatternParser pathPatternParser = PathPatternParser.defaultInstance;
+//
+//	private final List<PathPattern> requestPathPatterns = new ArrayList<>();
 
-	private final List<PathPattern> requestPathPatterns = new ArrayList<>();
+	private final List<String> requestUrls = new ArrayList<>();
 
 	/**
 	 * end : add index.
@@ -99,10 +98,12 @@ public class Route implements Ordered {
 		// 装配Path
 		Object pathStr = metadata.get(RouteIndexesEnum.PATH.getValue());
 		if (null != pathStr) {
-			Arrays.stream(StringUtils.trimAllWhitespace(String.valueOf(pathStr)).split(",")).forEach(str -> {
-				PathPattern pathPattern = pathPatternParser.parse(str);
-				requestPathPatterns.add(pathPattern);
-			});
+
+			requestUrls.addAll(Arrays.stream(StringUtils.trimAllWhitespace(String.valueOf(pathStr)).split(",")).toList());
+//			Arrays.stream(StringUtils.trimAllWhitespace(String.valueOf(pathStr)).split(",")).forEach(str -> {
+//				PathPattern pathPattern = pathPatternParser.parse(str);
+//				requestPathPatterns.add(pathPattern);
+//			});
 			metadata.remove(RouteIndexesEnum.PATH.getValue());
 		}
 		// 装配method
@@ -122,10 +123,17 @@ public class Route implements Ordered {
 	/**
 	 * API index.
 	 */
-	public static final Attribute<Route, PathPattern> REQUEST_PATH = new MultiValueAttribute<Route, PathPattern>(
-			"requestPathPatterns") {
-		public Iterable<PathPattern> getValues(Route route, QueryOptions queryOptions) {
-			return route.requestPathPatterns;
+//	public static final Attribute<Route, PathPattern> REQUEST_PATH = new MultiValueAttribute<Route, PathPattern>(
+//			"requestPathPatterns") {
+//		public Iterable<PathPattern> getValues(Route route, QueryOptions queryOptions) {
+//			return route.requestPathPatterns;
+//		}
+//	};
+
+	public static final Attribute<Route, String> REQUEST_PATH = new MultiValueAttribute<Route, String>(
+			"requestUrls") {
+		public Iterable<String> getValues(Route route, QueryOptions queryOptions) {
+			return route.requestUrls;
 		}
 	};
 
@@ -212,14 +220,12 @@ public class Route implements Ordered {
 		return order == route.order && Objects.equals(id, route.id) && Objects.equals(uri, route.uri)
 				&& Objects.equals(predicate, route.predicate) && Objects.equals(gatewayFilters, route.gatewayFilters)
 				&& Objects.equals(metadata, route.metadata) && Objects.equals(requestMethods, route.requestMethods)
-				&& Objects.equals(pathPatternParser, route.pathPatternParser)
-				&& Objects.equals(requestPathPatterns, route.requestPathPatterns);
+				&& Objects.equals(requestUrls, route.requestUrls);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, uri, order, predicate, gatewayFilters, metadata, requestMethods, pathPatternParser,
-				requestPathPatterns);
+		return Objects.hash(id, uri, order, predicate, gatewayFilters, metadata, requestMethods, requestUrls);
 	}
 
 	@Override
